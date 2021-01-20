@@ -1,0 +1,1135 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Copy of Assessed_Data_Wrangling_and_Cleaning_lab.ipynb",
+      "provenance": [],
+      "collapsed_sections": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/L00136317/Flight/blob/master/Copy_of_Assessed_Data_Wrangling_and_Cleaning_lab.ipynb%20%2009.05%20am%2020th%20January%202021\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "upCKAd8JB6bO"
+      },
+      "source": [
+        "#Assessed Lab: Data Wrangling & Cleaning for Big Data Analytics\n",
+        "> Big Data Analytics 2020 | Due January 21, Mid-night | Marks 15 (5*3)\n",
+        "\n",
+        "This lab aims to  familiarize with Pandas 🐼!, i.e., one of the fundamental libraries for Big Data Analytics. The lab primarily focuses to practice essential taks for the data analysis, i.e., preparing datasets to analyze, plot, and feed to machine learning classifiers.\n",
+        "\n",
+        "This lab requires you to analyze two datasets under the given sections.\n",
+        "\n",
+        "1. Hands on with New York flu and hospital-acquired-infection 's dataset\n",
+        "\n",
+        "2. Hands on with the Airbnb and Uber Data and  merged dataset based on Airbnb and Uber datasets \n",
+        "\n",
+        "**Note: To save your work, please click on the \"Copy To Drive\" menu option from the menue bar.**\n",
+        "\n",
+        "Run the following 2 cells to setup your python notebook for work"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "N5aBcHiKUM6_"
+      },
+      "source": [
+        "!pip3 install pandas==1.0.5\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "zfJ3v4LwtGpc",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "9cefc06d-182c-4cdb-9cdc-ed98e1beee89"
+      },
+      "source": [
+        "\n",
+        "!pip3 install py_stringsimjoin\n",
+        "!pip install python-Levenshtein\n",
+        "!pip3 install lxml\n",
+        "!pip install sqlalchemy\n",
+        "\n",
+        "\n",
+        "# Import neccessary libraries\n",
+        "import requests\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import urllib\n",
+        "import urllib.parse\n",
+        "from urllib import request\n",
+        "from urllib.request import urlopen\n",
+        "import seaborn as sns\n",
+        "from string import ascii_letters\n",
+        "import matplotlib.pyplot as plt\n",
+        "from datetime import datetime\n",
+        "import time \n",
+        "import sqlite3\n",
+        "import geocoder\n",
+        "import py_stringsimjoin as ssj\n",
+        "import py_stringmatching as sm\n",
+        "from Levenshtein import distance\n",
+        "from difflib import SequenceMatcher\n",
+        "from lxml import html\n",
+        "import pandas_datareader.data as web\n",
+        "from sqlalchemy import create_engine\n",
+        "\n"
+      ],
+      "execution_count": 159,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Requirement already satisfied: py_stringsimjoin in /usr/local/lib/python3.6/dist-packages (0.3.2)\n",
+            "Requirement already satisfied: PyPrind>=2.9.3 in /usr/local/lib/python3.6/dist-packages (from py_stringsimjoin) (2.11.2)\n",
+            "Requirement already satisfied: six in /usr/local/lib/python3.6/dist-packages (from py_stringsimjoin) (1.15.0)\n",
+            "Requirement already satisfied: joblib in /usr/local/lib/python3.6/dist-packages (from py_stringsimjoin) (1.0.0)\n",
+            "Requirement already satisfied: py-stringmatching>=0.2.1 in /usr/local/lib/python3.6/dist-packages (from py_stringsimjoin) (0.4.2)\n",
+            "Requirement already satisfied: pandas>=0.16.0 in /usr/local/lib/python3.6/dist-packages (from py_stringsimjoin) (1.1.5)\n",
+            "Requirement already satisfied: numpy>=1.7.0 in /usr/local/lib/python3.6/dist-packages (from py-stringmatching>=0.2.1->py_stringsimjoin) (1.19.5)\n",
+            "Requirement already satisfied: python-dateutil>=2.7.3 in /usr/local/lib/python3.6/dist-packages (from pandas>=0.16.0->py_stringsimjoin) (2.8.1)\n",
+            "Requirement already satisfied: pytz>=2017.2 in /usr/local/lib/python3.6/dist-packages (from pandas>=0.16.0->py_stringsimjoin) (2018.9)\n",
+            "Requirement already satisfied: python-Levenshtein in /usr/local/lib/python3.6/dist-packages (0.12.1)\n",
+            "Requirement already satisfied: setuptools in /usr/local/lib/python3.6/dist-packages (from python-Levenshtein) (51.1.2)\n",
+            "Requirement already satisfied: lxml in /usr/local/lib/python3.6/dist-packages (4.2.6)\n",
+            "Requirement already satisfied: sqlalchemy in /usr/local/lib/python3.6/dist-packages (1.3.22)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Mj6jiQGltIJ2",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "5a07f524-7e63-478e-a1f5-37bd59ef843e"
+      },
+      "source": [
+        "!wget https://github.com/shenna2017/datasets/blob/main/Hospital_Acquired_Infections.csv\n",
+        "!wget https://github.com/shenna2017/datasets/blob/main/zillow_df.csv\n",
+        "!wget https://github.com/shenna2017/datasets/blob/main/airbnb_df.csv\n",
+        "!wget https://github.com/shenna2017/datasets/blob/main/Flu_Confirmed_Cases_By_County.csv"
+      ],
+      "execution_count": 149,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "--2021-01-20 07:28:51--  https://github.com/shenna2017/datasets/blob/main/Hospital_Acquired_Infections.csv\n",
+            "Resolving github.com (github.com)... 140.82.114.3\n",
+            "Connecting to github.com (github.com)|140.82.114.3|:443... connected.\n",
+            "HTTP request sent, awaiting response... 200 OK\n",
+            "Length: unspecified [text/html]\n",
+            "Saving to: ‘Hospital_Acquired_Infections.csv.9’\n",
+            "\n",
+            "Hospital_Acquired_I     [ <=>                ]  88.99K  --.-KB/s    in 0.03s   \n",
+            "\n",
+            "2021-01-20 07:28:52 (3.22 MB/s) - ‘Hospital_Acquired_Infections.csv.9’ saved [91128]\n",
+            "\n",
+            "--2021-01-20 07:28:52--  https://github.com/shenna2017/datasets/blob/main/zillow_df.csv\n",
+            "Resolving github.com (github.com)... 140.82.114.3\n",
+            "Connecting to github.com (github.com)|140.82.114.3|:443... connected.\n",
+            "HTTP request sent, awaiting response... 200 OK\n",
+            "Length: unspecified [text/html]\n",
+            "Saving to: ‘zillow_df.csv.9’\n",
+            "\n",
+            "zillow_df.csv.9         [ <=>                ]  84.24K  --.-KB/s    in 0.03s   \n",
+            "\n",
+            "2021-01-20 07:28:52 (3.00 MB/s) - ‘zillow_df.csv.9’ saved [86265]\n",
+            "\n",
+            "--2021-01-20 07:28:52--  https://github.com/shenna2017/datasets/blob/main/airbnb_df.csv\n",
+            "Resolving github.com (github.com)... 140.82.113.4\n",
+            "Connecting to github.com (github.com)|140.82.113.4|:443... connected.\n",
+            "HTTP request sent, awaiting response... 200 OK\n",
+            "Length: unspecified [text/html]\n",
+            "Saving to: ‘airbnb_df.csv.9’\n",
+            "\n",
+            "airbnb_df.csv.9         [ <=>                ]  84.24K  --.-KB/s    in 0.03s   \n",
+            "\n",
+            "2021-01-20 07:28:52 (3.06 MB/s) - ‘airbnb_df.csv.9’ saved [86264]\n",
+            "\n",
+            "--2021-01-20 07:28:52--  https://github.com/shenna2017/datasets/blob/main/Flu_Confirmed_Cases_By_County.csv\n",
+            "Resolving github.com (github.com)... 140.82.114.4\n",
+            "Connecting to github.com (github.com)|140.82.114.4|:443... connected.\n",
+            "HTTP request sent, awaiting response... 200 OK\n",
+            "Length: unspecified [text/html]\n",
+            "Saving to: ‘Flu_Confirmed_Cases_By_County.csv.9’\n",
+            "\n",
+            "Flu_Confirmed_Cases     [ <=>                ]  84.59K  --.-KB/s    in 0.03s   \n",
+            "\n",
+            "2021-01-20 07:28:53 (3.07 MB/s) - ‘Flu_Confirmed_Cases_By_County.csv.9’ saved [86625]\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "2K3-m4JuNh9X"
+      },
+      "source": [
+        "#Introduction to Pandas?\n",
+        "\n",
+        "<div class = \"row\">\n",
+        "<div class=\"column\">\n",
+        "Pandas is a Python library for data manipulation/analysis. It is built with support from Numpy. Numpy is a Python package/library that support efficient calculations for matricies and other math problems.\n",
+        "</div><div class=\"column\">\n",
+        "<p class=\"d-flex\" align = \"center\">\n",
+        "<img src = \"https://thehill.com/sites/default/files/styles/article_full/public/panda_getty.jpg?itok=4ce_5sip\" height= \"200\" align =\"center\"/>\n",
+        "<img src = \"https://cff2.earth.com/uploads/2016/09/08101343/giant-panda-bear_1big_stock1.jpg\" height= \"200\" align =\"center\"/>\n",
+        "</p>\n",
+        "</div>\n",
+        "</div>\n",
+        "\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "gP8Py0x9CY9P"
+      },
+      "source": [
+        "#Adding the data \r\n",
+        "\r\n",
+        "We can't be data scientist without data! \"wget\" can download. If you go to the view on the left and click files, you should see the downloaded datasets under content."
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "bt_SIy9kUbAC"
+      },
+      "source": [
+        "## Part 1: : Hands on with Influenza and Hospital-Acquired Infection Data\n",
+        "\n",
+        "In this part of the homework we will be working with two different healthcare focused datasets! \n",
+        "\n",
+        "The Influenza dataset contains data about flu cases in New York. The Hospital-Acquired Infection dataset consists of information of infections patients acquired during a hospital visit.\n",
+        "\n",
+        "First load both the datasets into two Pandas Dataframes. Use pandas' <code>read_csv</code> functionality, you can refer detailed documentation/APIs:\n",
+        "\n",
+        "https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html\n",
+        "\n",
+        "API reference are **strongly encouraged** to get into a good habit of it. A documentation can answer questions directly, e.g., \"why the dataframe is not dropping duplicates\" or \"why this dataframe is not updated, etc.\").\n",
+        "\n",
+        "####** TODO**\n",
+        "- Save the Hopsital Acquired dataframe to a variable with the name: <code>hospital_df</code>\n",
+        "- Save the Influenza dataframe to a variable called: <code>flu_df</code>\n",
+        "- Save the data types to `flu_df_types` "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "S30QL5oPIloa"
+      },
+      "source": [
+        "#  Import your two files to pandas dataframes -- make sure the dataframes are named correctly!\n",
+        "def hospital_df(url='https://github.com/shenna2017/blob/datasets/main/Hospital_Acquired_Infections.csv'):\n",
+        "    hospital_df =  urllib.request.urlopen(url).read()\n",
+        "    hospital_df = pd.read_csv(hospital_data)\n",
+        "def hospital_df(url='https://github.com/shenna2017/datasets/blob/main/Flu_Confirmed_Cases_By_County.csv'):\n",
+        "    hospital_df = urllib.request.urlopen(url).read()\n",
+        "    hospital_df = pd.read_csv(hospital_data)\n",
+        "\n",
+        "\n",
+        "\n"
+      ],
+      "execution_count": 232,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "YZjip4gktNuo",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 197
+        },
+        "outputId": "681d7237-abc7-49fa-e85d-809ff69ba00d"
+      },
+      "source": [
+        "# Run# this cell to update the column names; please don't delete this!\n",
+        "hospital_df.columns = [column.replace(' ', '_') for column in hospital_df.columns]\n",
+        "flu_df.columns = [column.replace(' ', '_') for column in flu_df.columns]"
+      ],
+      "execution_count": 233,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "AttributeError",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-233-777711264c07>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;31m# Run# this cell to update the column names; please don't delete this!\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 2\u001b[0;31m \u001b[0mhospital_df\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcolumns\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;34m[\u001b[0m\u001b[0mcolumn\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mreplace\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m' '\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'_'\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mfor\u001b[0m \u001b[0mcolumn\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mhospital_df\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcolumns\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m \u001b[0mflu_df\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcolumns\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;34m[\u001b[0m\u001b[0mcolumn\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mreplace\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m' '\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'_'\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mfor\u001b[0m \u001b[0mcolumn\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mflu_df\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcolumns\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mAttributeError\u001b[0m: 'function' object has no attribute 'columns'"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "4mYmUbwXp_tC"
+      },
+      "source": [
+        "The cell above uses list comphrension in python,  you can read more about it here: https://docs.python.org/3/tutorial/datastructures.html"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "l6Jhb8PBNuf5"
+      },
+      "source": [
+        "Let's focus on the flu_df for now. Work with the hospital dataframe.  Display the first 10 rows of the flu_df dataframe in the cell below (take a look at the above documentation to do this)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "HL0SyrGjaENp"
+      },
+      "source": [
+        "# TODO: Display the first 10 rows of `flu_df`\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "8fVyS1_3Qkpd"
+      },
+      "source": [
+        "Another thing that is often times helpful to do is inspect the types of each column in a dataframe. Output the types of the flu_df in this cell below. "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "VLeID5-MaCJX"
+      },
+      "source": [
+        "# TODO: Display the datatypes in `flu_df`\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "TbfN6lLBSrb_"
+      },
+      "source": [
+        "Save the types of the the Season, Region, Count, and FIPS columns to a series and pass them."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "eaqR1EPeSMPU"
+      },
+      "source": [
+        "# TODO: Just a warmup to get exposed to indexing and series vs. dataframe\n",
+        "flu_df_types="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "TXWHLnK7Z9XO"
+      },
+      "source": [
+        "# View the output here!\n",
+        "flu_df_types"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "FTsd4gbgXZoD"
+      },
+      "source": [
+        "##1.1 Dropping data\n",
+        "To process data, values with NaNs, duplicates or columns  don't give much insight into the data. There are different ways to deal with missing values (i.e. imputation, which you can read into on your own), but for now, let's drop some of these rows to clean up our data. Note that there are multiple ways to do each step.\n",
+        "\n",
+        "\n",
+        "Refer to the above documentation if you get stuck -- it's your best help!\n",
+        "\n",
+        "<br>\n",
+        "\n",
+        "#### **TODO: 1.1**\n",
+        "\n",
+        "- Drop duplicate rows\n",
+        "- Drop rows that have nulls (e.g. NaN) \n",
+        "- Drop the \"Season\" and \"FIPS\" columns. These columns aren't neccessary for the rest of the lab.\n",
+        "- Drop all rows with the \"Count\" column equal to 0\n",
+        "- Save the result to `flu_df_cleaned` "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0tVzdxJmShku"
+      },
+      "source": [
+        "# TODO: Drop duplicate rows\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "7n0uC--Ld-du"
+      },
+      "source": [
+        "# TODO: Drop rows that have any nulls (NaN) \n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "i36_WcGYeJqW"
+      },
+      "source": [
+        "# TODO: Drop the Season and FIPS columns\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "lAHvDRqgd88A"
+      },
+      "source": [
+        "# Drop all rows with \"Count\" equal to 0"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "iZF7O2EWeLAN"
+      },
+      "source": [
+        "flu_df_cleaned="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "2GwTkUYXY4sO"
+      },
+      "source": [
+        "View your dataframe again to check if you dropped the columns and the appropriate rows properly:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "zQkyKhv7XlSa"
+      },
+      "source": [
+        "flu_df_cleaned"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "xaY5kOL2ZPyK"
+      },
+      "source": [
+        "##1.2 Extracting Month, Day, Year of Each Row in the flu_df\n",
+        "\n",
+        "let's filter out information from the Ending Date Column. Add columns for Month, Day, and Year of the Ending Date. Make sure these new columns have datatypes that allow for mathematical operations.\n",
+        "\n",
+        "Hint: Highly recommend using the \"apply\" function\n",
+        "\n",
+        "#### **TODO: 1.2**\n",
+        "- Extract the columns `Year`, `Month` and `Day` from the `Week_Ending_Date` column -- this is case-sensitive!\n",
+        "- Convert these columns to a sensible type that would allow us to do mathematical operations on them (hint: strings probably won't be so good here)\n",
+        "- Store this as `flu_df_cleaned` \n",
+        "\n",
+        "- Extract columns for `Latitude` and `Longitude` appropriately and update `flu_df_cleaned` \n",
+        "\n",
+        "- Compute the average week number that data was collected on and store it in `mean_week_num_collected` "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "GkPS2_1XmwLv"
+      },
+      "source": [
+        "# TODO: First, extract the Month, Day, and Year of each entry into a numeric type (see the `apply` function).\n",
+        "\n",
+        "flu_df_cleaned="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-SmL7E4Txm7v"
+      },
+      "source": [
+        "As mentioned above, we now have two more tasks to do in order to clean up and wrangle this flu dataframe. The first is as follows: one column in the flu_df_cleaned dataframe contains longitude and latitude data; create two columns, one for latitude and one for longitude (make sure the new columns have numeric types). \n",
+        "Name the columns `Latitude` and `Longitude` "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "D5MXlbzOxmUM"
+      },
+      "source": [
+        "# TODO: Next, extract columns for `Latitude` and `Longitude` by processing the tuple in `County_Centroid`\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "30gERlasXmm2"
+      },
+      "source": [
+        "# TODO: Cast the `Latitude` and `Longitude` column into numeric types\n",
+        "flu_df_cleaned="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "_NMB9GlSAd0o"
+      },
+      "source": [
+        "Lastly, we are interested in learning a bit more about when this data was collected. We aren't sure if the every week of the year is equally represented in the dataset. We want to know the average week number of the <code>Week_Ending_Date</code> column. The week number is a scalar that ranges from 1 to 52. \n",
+        "\n",
+        "Store this as `mean_week_num_collected`. Think about what type of variable this should be, considering that we're looking at a week number! "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "eaEcmAdiAb0V"
+      },
+      "source": [
+        "# TODO: Finally, compute the average week of the year using the \"Week_Ending_Date\" column and set your answer to \"mean_week_num_collected\"\n",
+        "\n",
+        "mean_week_num_collected = "
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Kb0mDbmvYNYS"
+      },
+      "source": [
+        "# View the output of the variable here before running the grader cell\n",
+        "print(mean_week_num_collected)"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "GC74xCFLs9x8"
+      },
+      "source": [
+        "##1.3 Which Counties have the highest average count of Influenza A from September to March?\n",
+        "\n",
+        "Let's find which counties have the highest average count of Influenza A from September to March (flu season!), inclusive. We'll use a `groupby` function here, and also do a bit of postprocessing to clean up our dataframe.\n",
+        "\n",
+        "####**TODO: 1.3**\n",
+        "- Create a dataframe with only average (mean) influenza A counts and County name. The columns should be named `County` and `Average_Flu_A_Count`\n",
+        "- Order it from highest to lowest average influenza A count\n",
+        "- Edit `County` so that we only capitalize the first letter of the county\n",
+        "- Store this as `flu_A_by_county` \n",
+        "- Make a plot of this data using the `matplotlib` package \n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "b12pwigj1spg"
+      },
+      "source": [
+        "# TODO: Create `flu_A_by_county` - look at the groupby functions!\n",
+        "flu_A_by_county="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "DUizoHpXfTaY"
+      },
+      "source": [
+        "# TODO: Make sure to update your dataframe as appropriate so it matches the syntax expected!\n",
+        "flu_A_by_county="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "foPROEvbfjYV"
+      },
+      "source": [
+        "Your table should look something like\n",
+        ">County | Average_Flu_A_Count\n",
+        ">--- | ---\n",
+        ">Countyname | Number1\n",
+        ">Othercounty | Number2\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "p6ALcN28JJlx"
+      },
+      "source": [
+        "Plot a bar plot of the 5 counties with the highest Average Influenza A counts from September to March. \n",
+        "\n",
+        "<br>\n",
+        "\n",
+        "Make sure your plots are correct and reasonable; small things like axes labels and colors we'd invite you to do if you want to make your plot better and more useful to an end-user. We likely won't be answering questions about the specifics here as a result!"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "YC0jdkyo1_5z"
+      },
+      "source": [
+        "# TODO: Create a plot using matplotlib. - 4 points. \n",
+        "# You may also use other libraries like plotly or seaborn if you like"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "NoF4LKyCd34x"
+      },
+      "source": [
+        "##1.4 Looking at Hospital Infection Data\n",
+        "\n",
+        "Now lets bring in our hospital infection data. \n",
+        "\n",
+        "Just like our `flu_df`, we need to clean and prepare our hospital infection data (more data wrangling!). Visualize the `hospital_df` dataframe below to take a look at it. \n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "4DeHO_I7AKHs"
+      },
+      "source": [
+        "#TODO: Take a look at the hopsital_df\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "c2AqU7DuXt0T"
+      },
+      "source": [
+        "#### **TODO: 1.4**\n",
+        "- Compute `second_null`, the column that has the second null in a given row (this won't be the same value for all rows) "
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "e-4e-Ffv_1ro"
+      },
+      "source": [
+        "Before we clean this dataframe, we would like to answer a finicky question about the dataframe. We want to get an idea for the extent of the null values in the dataframe. For each row in hospital_df we want to know which column contains the **second null value in the row.**\n",
+        "\n",
+        "Create a series named `second_null` that has the answer to this question. You may find that functions like `cumsum()` and `idxmax()` might be helpful -- we'd recommend looking at the documentation."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "2BDSvuf8_1KP"
+      },
+      "source": [
+        "# TODO: Compute `second_null`\n",
+        "second_null="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "glkzYMnXF_Vt"
+      },
+      "source": [
+        "##1.5 Cleaning up Hospital Infection Data\n",
+        "\n",
+        "We now want to clean up our hospital infection data. Let's follow the some of the same steps we performed with the flu_df for dropping duplicates/nulls as well as two more cleaning tasks. \n",
+        "\n",
+        "#### **TODO: 1.5**\n",
+        "- Drop duplicates and null values from `hospital_df` \n",
+        "- Create columns for `Latitude` and `Longitude`\n",
+        "- Replace every instance of \"Not significantly different than NYS 2018 average\" in the `Comparison Results` column with the string \"p-value greater than 0.05, NOT significantly different than NYS 2018 average\"\n",
+        "- Save this as `hospital_df_cleaned` \n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "UetZ8PppwyiL"
+      },
+      "source": [
+        "First, drop all duplicates and nulls as we did before!"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ZNmpjlHsHkRZ"
+      },
+      "source": [
+        "# TODO: Drop duplicates and nulls\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "kU3dUqaFJCKt"
+      },
+      "source": [
+        "Now, create columns for latitude and longitude"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "jmc4YrK7NGcR"
+      },
+      "source": [
+        "# TODO: Create columns for `Latitude` and `Longitude`\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "69fDZNUZw-wt"
+      },
+      "source": [
+        "Finally, replace the entries in `Comparison_Results`"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "4KIcerOEw9Q3"
+      },
+      "source": [
+        "#TODO: Replace the text as mentioned above!\n",
+        "\n",
+        "hospital_df_cleaned="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "26xMn6jBKYIw"
+      },
+      "source": [
+        "## Part 2: Grabbing more some more data: Generating Zipcodes\n",
+        "\n",
+        "We are really interested in comparing whether flu cases are at all related to hospital acquired infections. As such we would like to do a location based comparison. We have a few tasks in this part: \n",
+        "\n",
+        "#### **TODO: Part 2**\n",
+        "1. Order the flu dataframe by Disease (lexographically) and create a new dataframe called `flu_df_limited` that contains only the first 300 rows. \n",
+        "\n",
+        "2. Order the hospital_df by `Facility_ID` (from least to greatest) and create a new dataframe called `hospital_df_limited` that contains only the first 300 rows. \n",
+        "\n",
+        "\n",
+        "You will use the `flu_df_cleaned` and `hospital_df_cleaned` to make these new smaller dataframes. \n",
+        "\n",
+        "Notice both the flu dataframe and the hospital dataframe don't have a zipcode column:\n",
+        "- We want the zipcode for each row for each of the two dataframes\n",
+        "- Add a new column to the dataframe with the associated zipcode for the given longitude/latitude point\n",
+        "- This can be achieved through using the latitude and longitude. Google around for ways to convert latitude/longitude points into a zipcode in Python. We suggest a few options:\n",
+        "\n",
+        "https://geopy.readthedocs.io/en/stable/\n",
+        "\n",
+        "https://developer.mapquest.com/\n",
+        "\n",
+        "https://stackoverflow.com/questions/54320931/python-code-for-reverse-geo-coding-using-google-api\n",
+        "\n",
+        "This part can be a little challenging. Keep working at it and don't get discouraged \n",
+        "\n",
+        "You'll find that we might have to iterate over the values, and there are a couple ways to do this:\n",
+        "- `apply` functions that do operations in parallel (generally best-practice in pandas)\n",
+        "- for-loops and other iterators...but if you run this on the entire dataset it will be slow, so we would recommend thinking a bit on how to make things efficient if you choose to go this route\n",
+        "\n",
+        "Make sure the added zipcode column name is named `flu_zipcode` for the `flu_limited_df` and  `hospital_zipcode` for the `hosptial_limited_df`. Note to keep the zipcode column type as strings. Name your two new dataframes `flu_limited_df` and  `hospital_limited_df` "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "TR9TJ0fzzPFf"
+      },
+      "source": [
+        "# There are a few options to do this problem but we recommend using the geocoder package. Let's import it here. \n",
+        "import geocoder\n",
+        "\n",
+        "# Take a look at the geocoder.mapquest function\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ud29F6COzuLo"
+      },
+      "source": [
+        "# TODO: Create `flu_df_limited`\n",
+        "\n",
+        "flu_df_limited="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Ljrysm4jhhlI"
+      },
+      "source": [
+        "# TODO: Create `hospital_df_limited`\n",
+        "\n",
+        "hospital_df_limited="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "XoQQn4M-z1K7"
+      },
+      "source": [
+        "# TODO: Find and add flu zipcodes to `flu_df_limited` -- and do the same for `hospital_df_limited`\n",
+        "hospital_df_limited=\n",
+        "\n",
+        "flu_df_limited="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "mh4pp5Nd3Wx3"
+      },
+      "source": [
+        "#Part 3: Combining the data\n",
+        "\n",
+        "When you become a full time data scientist, a lot of times, data will be spread out across multiple files/tables. The way to combine these tables is through join/merge operations. If you're familiar with SQL, this will be very familiar to you. If not, don't worry. I believe in you!\n",
+        "\n",
+        "To start, here's a nice diagram which shows you the different types of joins\n",
+        "\n",
+        "\n",
+        "<p align = \"center\">\n",
+        "<img src = \"https://i.stack.imgur.com/hMKKt.jpg\" width= \"600\" align =\"center\"/>\n",
+        "</p>\n",
+        "\n",
+        "A clarifying point: The two venn diagrams with the \"(if Null)\" are also called Left Outer Join and Right Outer Join\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "enwuLI3LjqYz"
+      },
+      "source": [
+        "When working in data science, a large portion of the time we will want to perform an inner join (see the diagram above for some information on what an inner join is if you are not familiar). As such perform an inner join between the `hospital_df_limited` and the `flu_df_limited` on the Year columns (we would like matches between the Year column for `hospital_df_limited` and the Year column for `flu_df_limited`). \n",
+        "\n",
+        "**Note** This is a change made on 9/20 5PM EDT to correct the previous typos that did not include `_limited` in the df names. It is also in the FAQ.\n",
+        "\n",
+        "Name your answer `inner_joined_df`."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Ry5po0-SpXL7",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 129
+        },
+        "outputId": "0c1d3a53-207f-47c3-98a1-d595746f1410"
+      },
+      "source": [
+        "#TODO: Perform an inner join between the hospital_df_limited and flu_df_limited on the Year column. \n",
+        "inner_joined_df ="
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "SyntaxError",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;36m  File \u001b[0;32m\"<ipython-input-4-0ff3b1ba5cd2>\"\u001b[0;36m, line \u001b[0;32m2\u001b[0m\n\u001b[0;31m    inner_joined_df =\u001b[0m\n\u001b[0m                     ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "DitIiPoGXhUW"
+      },
+      "source": [
+        "#### **TODO: Part 3.1**\n",
+        "\n",
+        "Let's now do a join that is a little bit more interesting / uncommon.\n",
+        "\n",
+        "- Find all the zipcodes that strictly appear in DO NOT appear in both datasets:\n",
+        "\n",
+        "    *  If 11111 is in flu data and hospital infection data, we don't want it\n",
+        "    *  If 22222 is in flu data but not in hospital, we want to keep it\n",
+        "    * If 33333 is in hospital infection data but not in flu, we want to keep it\n",
+        "\n",
+        "- In other words, we want all the zipcodes that have flu cases with no hospital infections (this is probably impossible in the real world, but our data is a small sample of the real world). **Note we are using the hospital_df_limited and flu_df_limited dataframes here** \n",
+        "\n",
+        "- *Hint*: Google around for Exclusive Full Joins\n",
+        "\n",
+        "- We want the final answer as a two column dataframe with columns named: `flu_zips`, `hospital_zips` \n",
+        "    * `flu_zips` should contain the zipcodes that only exist within the flu dataset and vice-a-versa for `hospital_zips` column\n",
+        "    * If there is a row where hospital_zip has a zipcode, that same row should not have a `flu_zips` entry (Should be NaN) as otherwise, that means that zipcode is shared between both datasets\n",
+        "    * Make sure your final answer dataframe is named: `combined_df`"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-0iVOifDuDoq"
+      },
+      "source": [
+        "# TODO: Create combined_df\n",
+        "\n",
+        "combined_df="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "wXAslqnzDfpE"
+      },
+      "source": [
+        "## Part 4: Working With Zillow and AirBnB data! (not marked but required with the submission)\n",
+        "\n",
+        "Let's now look at some Zillow and AirBnB data! As a data scientist, you will often be asked to work with many different kinds of datasets (and through this course you will get hands on experience with data from many different fields!)\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Q3LIKZjEMmkQ"
+      },
+      "source": [
+        "Read in the Zillow and AirBnB data to pandas dataframes and take a look at it so that you are familiar with the features (columns) in both datasets. "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "6DOtWUs2Emep"
+      },
+      "source": [
+        "# TODO: Take a look at the Zillow Df\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "r6PPK9ovYiLK"
+      },
+      "source": [
+        "#TODO: Take a look at the AirBnB Df\n"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "LNAeU-oabPqx"
+      },
+      "source": [
+        "##4.1 Correlation Matrix \n",
+        "\n",
+        "We want to see if, on average, there is any correlation between the gross square footage of apartments versus airbnb prices for shared zipcodes, and **if there is a correlation, how strong is it?**\n",
+        "\n",
+        "\n",
+        "#### **TODO: 4.1**\n",
+        "- Find the average value of each column for each zipcode within Zillow\n",
+        "- Find the average value of each column for each zipcode within AirBnb\n",
+        "\n",
+        "- Generate the correlation matrix. Find the value associated with **Zillow Gross Square footage vs. Airbnb Price**. *Hint*: Read about Pandas \"corr()\" function.\n",
+        "\n",
+        "- Name your final answer correlation matrix dataframe to: `correlation_matrix\n",
+        "\n",
+        "- Plot a correlation matrix -- just to get a sense of what it might look like!\n",
+        "\n",
+        "\n",
+        "**Note: You can correctly answer the following section just using Zillow's gross square footage column and Airbnb's price column but after this question, we want to plot a correlation matrix which will require all the columns(not just the two listed above)**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "NpMeTCw3IX52"
+      },
+      "source": [
+        "# TODO: Create your correlation matrix\n",
+        "\n",
+        "correlation_matrix="
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "gWRRlGRnetav"
+      },
+      "source": [
+        "Here we provide code for you to visualize the correlation matrix. In the following code snippet below, please assign your correlation matrix to the variable named \"corr\" and then run the cell. You should see a correlation matrix!\n",
+        "\n",
+        "##This isn't a graded cell; but you might find that knowing how to plot correlation matrices is helpful in general EDA ! :)##"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "xI15Ztk9IlSY"
+      },
+      "source": [
+        "sns.set(style = \"white\")\n",
+        "\n",
+        "# Generate a large random dataset\n",
+        "rs = np.random.RandomState(33)\n",
+        "d = pd.DataFrame(data=rs.normal(size=(100, 26)),\n",
+        "                 columns=list(ascii_letters[26:]))\n",
+        "\n",
+        "# Compute the correlation matrix\n",
+        "# ASSIGN THE \"corr\" VARIABLE TO YOUR CORRELATION MATRIX\n",
+        "corr = correlation_matrix\n",
+        "\n",
+        "# Generate a mask for the upper triangle\n",
+        "mask = np.zeros_like(corr, dtype=np.bool)\n",
+        "mask[np.triu_indices_from(mask)] = True\n",
+        "\n",
+        "# Set up the matplotlib figure\n",
+        "f, ax = plt.subplots(figsize=(11, 9))\n",
+        "\n",
+        "# Generate a custom diverging colormap\n",
+        "cmap = sns.diverging_palette(220, 10, as_cmap=True)\n",
+        "\n",
+        "# Draw the heatmap with the mask and correct aspect ratio\n",
+        "sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,\n",
+        "            square=True, linewidths=.5, cbar_kws={\"shrink\": .5})\n",
+        "plt.title(\"Correlation Heatmap: Airbnb & Zillow Data\")\n",
+        "plt.show()"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "ydELAEzkzpE_"
+      },
+      "source": [
+        "# Lab Submission\n",
+        "\n",
+        "We'll check for plagirism but for the most part things are relatively certain.\n",
+        "you must submit your notebook ob blackboard.\n",
+        "\n",
+        "\n",
+        "1.   Restart and Run-All to make sure there's nothing wrong with your notebook\n",
+        "2. Go to the \"File\" tab at the top left, and click \"Download .ipynb\" and upload the Python notebook to BB directly!\n",
+        "\n",
+        "**Let me know ASAP if you have any issues submitting, but otherwise best of luck! "
+      ]
+    }
+  ]
+}
